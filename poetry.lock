@@ -80,6 +80,17 @@ version = "6.0.2"
 
 [[package]]
 category = "main"
+description = "Read key-value pairs from a .env file and set them as environment variables"
+name = "python-dotenv"
+optional = false
+python-versions = ">=3.5"
+version = "0.20.0"
+
+[package.extras]
+cli = ["click (>=5.0)"]
+
+[[package]]
+category = "main"
 description = "Backported and Experimental Type Hints for Python 3.7+"
 name = "typing-extensions"
 optional = false
@@ -99,7 +110,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "b9006e7da0a9f5d9490a8cf5727991e38a110028eac43895fe71bf35a4c3493f"
+content-hash = "fb6a0700b3a74aaec136afe80288c5af4629a2c58c7ca5055e19e92dfbb6ffe6"
 lock-version = "1.0"
 python-versions = "^3.9"
 
@@ -114,5 +125,6 @@ idna = [
     {file = "idna-3.3.tar.gz", hash = "sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d"},
 ]
 multidict = []
+python-dotenv = []
 typing-extensions = []
 yarl = []
