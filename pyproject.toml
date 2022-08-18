@@ -8,6 +8,7 @@ authors = ["Bruno Marques <bruno@bmarques.net>"]
 python = "^3.9"
 "discord.py" = "^1.7.3"
 python-dotenv = "^0.20.0"
+peewee = "^3.15.1"
 
 [tool.poetry.dev-dependencies]
 
