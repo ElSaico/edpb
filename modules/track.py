@@ -1,9 +1,15 @@
 from discord.ext import commands, tasks
 
+from db import db
+
 
 class Track(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        db.connect()
+
+    def cog_unload(self):
+        db.close()
 
     @commands.Cog.listener()
     async def on_ready(self):

@@ -1,40 +1,47 @@
 import enum
 
 import peewee as pw
+from playhouse.apsw_ext import APSWDatabase
 
-db = pw.SqliteDatabase('trade.db')
-
-
-class ChoiceMixin:
-    @classmethod
-    def choices(cls):
-        return [(name, member.value) for name, member in cls.__members__.items()]
+db = APSWDatabase('trade.db')
+db.load_extension('mod_spatialite')
 
 
 class MinorFaction(pw.Model):
+    name = pw.CharField()
+    updated_at = pw.DateTimeField()
+    government = pw.CharField(index=True)
+    allegiance = pw.CharField(index=True)
+    home_system = pw.DeferredForeignKey('System', backref='home_factions')
+    is_player_faction = pw.BooleanField()
+
     class Meta:
         database = db
 
 
 class System(pw.Model):
+    edsm_id = pw.IntegerField()
+    name = pw.CharField()
+    #position (TODO set up spatialite)
+    population = pw.IntegerField()
+    is_populated = pw.BooleanField()
+    government = pw.CharField(index=True)
+    allegiance = pw.CharField(index=True)
+    #states
+    security = pw.CharField(index=True)
+    primary_economy = pw.CharField(index=True)
+    power = pw.CharField(index=True)
+    power_state = pw.CharField(index=True)
+    needs_permit = pw.BooleanField()
+    updated_at = pw.DateTimeField()
+    minor_factions_updated_at = pw.DateTimeField()
+    simbad_ref = pw.CharField()
+    controlling_minor_faction = pw.ForeignKeyField(MinorFaction, backref='controlling_systems')
+    reserve_type = pw.CharField(index=True)
+    ed_system_address = pw.IntegerField()
+
     class Meta:
         database = db
-
-
-class LandingPadSize(ChoiceMixin, enum.Enum):
-    pass
-
-
-class Government(ChoiceMixin, enum.IntEnum):
-    pass
-
-
-class Allegiance(ChoiceMixin, enum.IntEnum):
-    pass
-
-
-class StationType(ChoiceMixin, enum.IntEnum):
-    pass
 
 
 class Station(pw.Model):
@@ -45,12 +52,12 @@ class Station(pw.Model):
     shipyard_updated_at = pw.DateTimeField()
     outfitting_updated_at = pw.DateTimeField()
     market_updated_at = pw.DateTimeField()
-    max_landing_pad_size = pw.CharField(choices=LandingPadSize.choices())
+    max_landing_pad_size = pw.CharField(index=True)
     distance_to_star = pw.IntegerField()
-    government = pw.SmallIntegerField(choices=Government.choices())
-    allegiance = pw.SmallIntegerField(choices=Allegiance.choices())
+    government = pw.CharField(index=True)
+    allegiance = pw.CharField(index=True)
     #states
-    type = pw.SmallIntegerField(choices=StationType.choices())
+    type = pw.CharField(index=True)
     has_blackmarket = pw.BooleanField()
     has_market = pw.BooleanField()
     has_refuel = pw.BooleanField()
@@ -68,8 +75,8 @@ class Station(pw.Model):
     has_universal_cartographics = pw.BooleanField()
     is_planetary = pw.BooleanField()
     #economies
-    #settlement_size
-    #settlement_security
+    settlement_size = pw.CharField(index=True)
+    settlement_security = pw.CharField(index=True)
     body_id = pw.IntegerField()
     ed_market_id = pw.IntegerField()
 
@@ -77,22 +84,22 @@ class Station(pw.Model):
         database = db
 
 
-class CommodityCategory(ChoiceMixin, enum.IntEnum):
-    ...  # TODO map categories
-
-
-class CommodityBracket(ChoiceMixin, enum.IntEnum):
+class CommodityBracket(enum.IntEnum):
     TEMPORARY = -1  # empty on eddb, -1 on eddblink servers; the latter is most sensible
     NONE = 0
     LOW = 1
     MEDIUM = 2
     HIGH = 3
 
+    @classmethod
+    def choices(cls):
+        return [(name, member.value) for name, member in cls.__members__.items()]
+
 
 class Commodity(pw.Model):
     ed_id = pw.IntegerField()
     name = pw.CharField()
-    category = pw.SmallIntegerField(choices=CommodityCategory.choices())
+    category = pw.CharField(index=True)
     is_rare = pw.BooleanField()
     is_non_marketable = pw.BooleanField()
     average_price = pw.IntegerField()
@@ -120,4 +127,3 @@ class Listing(pw.Model):
 
     class Meta:
         database = db
-

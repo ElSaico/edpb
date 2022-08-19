@@ -19,6 +19,14 @@ speedups = ["aiodns", "brotlipy", "cchardet"]
 
 [[package]]
 category = "main"
+description = "Another Python SQLite Wrapper"
+name = "apsw"
+optional = false
+python-versions = "*"
+version = "3.39.2.0"
+
+[[package]]
+category = "main"
 description = "Timeout context manager for asyncio programs"
 name = "async-timeout"
 optional = false
@@ -118,12 +126,13 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "05a04eb442bcc4f42e7614be6a18495271336a8d8e7fdb1f2d6fe161a564c395"
+content-hash = "144f21a79f72214deb4bb77a091efbb2ce131b6539ef012878a2646134ceb13d"
 lock-version = "1.0"
 python-versions = "^3.9"
 
 [metadata.files]
 aiohttp = []
+apsw = []
 async-timeout = []
 attrs = []
 chardet = []
