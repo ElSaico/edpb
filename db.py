@@ -3,7 +3,7 @@ import enum
 import peewee as pw
 from playhouse.apsw_ext import APSWDatabase
 
-db = APSWDatabase('trade.db')
+db = APSWDatabase('db.sqlite3')
 db.load_extension('mod_spatialite')
 
 
@@ -27,7 +27,7 @@ class System(pw.Model):
     is_populated = pw.BooleanField()
     government = pw.CharField(index=True)
     allegiance = pw.CharField(index=True)
-    #states
+    states = pw.CharField()
     security = pw.CharField(index=True)
     primary_economy = pw.CharField(index=True)
     power = pw.CharField(index=True)
@@ -56,7 +56,7 @@ class Station(pw.Model):
     distance_to_star = pw.IntegerField()
     government = pw.CharField(index=True)
     allegiance = pw.CharField(index=True)
-    #states
+    states = pw.CharField()
     type = pw.CharField(index=True)
     has_blackmarket = pw.BooleanField()
     has_market = pw.BooleanField()
@@ -74,7 +74,7 @@ class Station(pw.Model):
     has_interstellar_factors = pw.BooleanField()
     has_universal_cartographics = pw.BooleanField()
     is_planetary = pw.BooleanField()
-    #economies
+    economies = pw.CharField()
     settlement_size = pw.CharField(index=True)
     settlement_security = pw.CharField(index=True)
     body_id = pw.IntegerField()
