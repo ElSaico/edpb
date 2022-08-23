@@ -1,10 +1,19 @@
 import enum
 
-import peewee as pw
-from playhouse.apsw_ext import APSWDatabase
+import playhouse.apsw_ext as pw
 
-db = APSWDatabase('db.sqlite3')
+db = pw.APSWDatabase('db.sqlite3', pragmas={'journal_mode': 'WAL'})
 db.load_extension('mod_spatialite')
+
+
+class PointField(pw.Field):
+    field_type = 'POINT'
+
+    def db_value(self, value):
+        return value
+
+    def python_value(self, value):
+        return value
 
 
 class MinorFaction(pw.Model):
@@ -12,7 +21,7 @@ class MinorFaction(pw.Model):
     updated_at = pw.DateTimeField()
     government = pw.CharField(index=True)
     allegiance = pw.CharField(index=True)
-    home_system = pw.DeferredForeignKey('System', backref='home_factions')
+    home_system = pw.DeferredForeignKey('System', backref='home_factions', null=True)
     is_player_faction = pw.BooleanField()
 
     class Meta:
@@ -20,24 +29,23 @@ class MinorFaction(pw.Model):
 
 
 class System(pw.Model):
-    edsm_id = pw.IntegerField()
+    edsm_id = pw.IntegerField(null=True)
     name = pw.CharField()
-    #position (TODO set up spatialite)
+    position = PointField()
     population = pw.IntegerField()
     is_populated = pw.BooleanField()
     government = pw.CharField(index=True)
     allegiance = pw.CharField(index=True)
     states = pw.CharField()
-    security = pw.CharField(index=True)
-    primary_economy = pw.CharField(index=True)
-    power = pw.CharField(index=True)
-    power_state = pw.CharField(index=True)
+    security = pw.CharField(index=True, null=True)
+    primary_economy = pw.CharField(index=True, null=True)
+    power = pw.CharField(index=True, null=True)
+    power_state = pw.CharField(index=True, null=True)
     needs_permit = pw.BooleanField()
     updated_at = pw.DateTimeField()
-    minor_factions_updated_at = pw.DateTimeField()
     simbad_ref = pw.CharField()
     controlling_minor_faction = pw.ForeignKeyField(MinorFaction, backref='controlling_systems')
-    reserve_type = pw.CharField(index=True)
+    reserve_type = pw.CharField(index=True, null=True)
     ed_system_address = pw.IntegerField()
 
     class Meta:
@@ -49,9 +57,9 @@ class Station(pw.Model):
     system = pw.ForeignKeyField(System, backref='stations')
     controlling_minor_faction = pw.ForeignKeyField(MinorFaction, backref='controlling_stations')
     updated_at = pw.DateTimeField()
-    shipyard_updated_at = pw.DateTimeField()
-    outfitting_updated_at = pw.DateTimeField()
-    market_updated_at = pw.DateTimeField()
+    shipyard_updated_at = pw.DateTimeField(null=True)
+    outfitting_updated_at = pw.DateTimeField(null=True)
+    market_updated_at = pw.DateTimeField(null=True)
     max_landing_pad_size = pw.CharField(index=True)
     distance_to_star = pw.IntegerField()
     government = pw.CharField(index=True)
@@ -75,8 +83,8 @@ class Station(pw.Model):
     has_universal_cartographics = pw.BooleanField()
     is_planetary = pw.BooleanField()
     economies = pw.CharField()
-    settlement_size = pw.CharField(index=True)
-    settlement_security = pw.CharField(index=True)
+    settlement_size = pw.CharField(index=True, null=True)
+    settlement_security = pw.CharField(index=True, null=True)
     body_id = pw.IntegerField()
     ed_market_id = pw.IntegerField()
 
@@ -127,3 +135,7 @@ class Listing(pw.Model):
 
     class Meta:
         database = db
+
+
+def build_schema():
+    db.create_tables([MinorFaction, System, Station, Commodity, Listing])
