@@ -6,7 +6,8 @@ import dotenv
 from discord.ext import commands, tasks
 from discord.utils import oauth_url
 
-from db import db
+import eddb
+from models import db
 
 PERMISSION_FLAGS = 3072
 
@@ -25,11 +26,13 @@ async def on_ready():
     print(f'Invite link: {oauth_url(bot.user.id, permissions=discord.Permissions(PERMISSION_FLAGS))}')
 
 
-@tasks.loop()  # how long?
+@tasks.loop(minutes=15)
 async def sync_database():
-    # if eddb has new dumps, update (locking commands in the meantime) https://eddb.io/api
-    # get live prices from Tromador's eddblink server http://elite.tromador.com/files/listings-live.csv
-    ...
+    eddb.sync_factions()
+    eddb.sync_systems()
+    eddb.sync_stations()
+    eddb.sync_commodities()
+    eddb.sync_listings()
 
 
 @bot.command()

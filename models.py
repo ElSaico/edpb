@@ -9,11 +9,13 @@ db.load_extension('mod_spatialite')
 class PointField(pw.Field):
     field_type = 'POINT'
 
-    def db_value(self, value):
-        return value
 
-    def python_value(self, value):
-        return value
+class DatabaseUpdate(pw.Model):
+    filename = pw.CharField(index=True)
+    updated_at = pw.DateTimeField()
+
+    class Meta:
+        database = db
 
 
 class MinorFaction(pw.Model):
@@ -138,4 +140,4 @@ class Listing(pw.Model):
 
 
 def build_schema():
-    db.create_tables([MinorFaction, System, Station, Commodity, Listing])
+    db.create_tables([DatabaseUpdate, MinorFaction, System, Station, Commodity, Listing])
