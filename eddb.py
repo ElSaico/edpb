@@ -48,7 +48,8 @@ async def sync_database():
     fetch_update(EDDB_SYSTEMS_URL, process_systems)
     fetch_update(EDDB_STATIONS_URL, process_stations)
     fetch_update(EDDB_COMMODITIES_URL, process_commodities)
-    fetch_update(EDDB_LISTINGS_URL, process_listings_eddb)
+    fetch_update(EDDB_LISTINGS_URL, process_listings)
+    fetch_update(LIVE_LISTINGS_URL, process_listings)
 
 
 @models.db.atomic()
@@ -81,12 +82,6 @@ def process_stations(response):
 @models.db.atomic()
 def process_commodities(response):
     ...
-
-
-def process_listings_eddb(response):
-    if response.status_code == 304:
-        fetch_update(LIVE_LISTINGS_URL, process_listings)
-    process_listings(response)
 
 
 @models.db.atomic()
