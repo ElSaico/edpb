@@ -11,6 +11,7 @@ python-dotenv = "^0.20.0"
 peewee = "^3.15.1"
 apsw = "^3.39.2"
 Shapely = "^1.8.4"
+requests = "^2.28.1"
 
 [tool.poetry.dev-dependencies]
 

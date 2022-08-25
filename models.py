@@ -11,8 +11,8 @@ class PointField(pw.Field):
 
 
 class DatabaseUpdate(pw.Model):
-    filename = pw.CharField(index=True)
-    updated_at = pw.DateTimeField()
+    path = pw.CharField(index=True)
+    updated_at = pw.CharField()
 
     class Meta:
         database = db

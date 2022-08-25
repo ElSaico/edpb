@@ -3,7 +3,7 @@ import os
 
 import discord
 import dotenv
-from discord.ext import commands, tasks
+from discord.ext import commands
 from discord.utils import oauth_url
 
 import eddb
@@ -24,15 +24,7 @@ db.connect()
 async def on_ready():
     print(f'Logged in as {bot.user}')
     print(f'Invite link: {oauth_url(bot.user.id, permissions=discord.Permissions(PERMISSION_FLAGS))}')
-
-
-@tasks.loop(minutes=15)
-async def sync_database():
-    eddb.sync_factions()
-    eddb.sync_systems()
-    eddb.sync_stations()
-    eddb.sync_commodities()
-    eddb.sync_listings()
+    eddb.sync_database.start()
 
 
 @bot.command()
