@@ -1,3 +1,4 @@
+import csv
 import logging
 
 import playhouse.apsw_ext as pw
@@ -27,7 +28,7 @@ def fetch_update(path, process_fn):
     logger.info('Downloading %s...', path)
     response = requests.get(path, headers=headers)
 
-    logger.info('Download complete for %s', path)
+    logger.info('Request complete for %s', path)
     response.raise_for_status()
     if response.status_code == 200:
         last_modified = response.headers['Last-Modified']
@@ -38,6 +39,7 @@ def fetch_update(path, process_fn):
         else:
             models.DatabaseUpdate.create(path=path, updated_at=last_modified)
         process_fn(response)
+        logger.info('Finished loading %s', path)
     else:
         logger.debug('No modification found for %s', path)
 
@@ -54,36 +56,53 @@ async def sync_database():
 
 @models.db.atomic()
 def process_factions(response):
-    ...
+    for row in csv.DictReader(response):
+        del row['government_id']
+        del row['allegiance_id']
+        models.MinorFaction.create(**row)
 
 
 @models.db.atomic()
 def process_systems(response):
-    for system in response.json():
-        del system['government_id']
-        del system['allegiance_id']
-        del system['security_id']
-        del system['primary_economy_id']
-        del system['power_state_id']
-        del system['reserve_type_id']
-        del system['controlling_minor_faction']
-        del system['minor_faction_presences']
-        del system['minor_factions_updated_at']
-        system['position'] = pw.fn.MakePointZ(system.pop('x'), system.pop('y'), system.pop('z'))
-        system['states'] = ', '.join(state['name'] for state in system['states'])
-        models.System.create(**system)
+    for row in response.json():
+        del row['government_id']
+        del row['allegiance_id']
+        del row['security_id']
+        del row['primary_economy_id']
+        del row['power_state_id']
+        del row['reserve_type_id']
+        del row['controlling_minor_faction']
+        del row['minor_faction_presences']
+        del row['minor_factions_updated_at']
+        row['position'] = pw.fn.MakePointZ(row.pop('x'), row.pop('y'), row.pop('z'))
+        row['states'] = ', '.join(state['name'] for state in row['states'])
+        models.System.create(**row)
 
 
 @models.db.atomic()
 def process_stations(response):
-    ...
+    for row in response.json():
+        del row['government_id']
+        del row['allegiance_id']
+        del row['type_id']
+        del row['settlement_size_id']
+        del row['settlement_security_id']
+        del row['selling_ships']
+        del row['selling_modules']
+        row['states'] = ', '.join(state['name'] for state in row['states'])
+        row['economies'] = ', '.join(row['economies'])
+        models.Station.create(**row)
 
 
 @models.db.atomic()
 def process_commodities(response):
-    ...
+    for row in response.json():
+        del row['category_id']
+        row['category'] = row['category']['name']
+        models.Commodity.create(**row)
 
 
 @models.db.atomic()
 def process_listings(response):
-    ...
+    for row in csv.DictReader(response):
+        models.Listing.create(**row)
