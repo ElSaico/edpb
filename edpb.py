@@ -17,7 +17,6 @@ logging.basicConfig(level=logging.INFO)
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='ed!', intents=intents)
-db.connect()
 
 
 @bot.event

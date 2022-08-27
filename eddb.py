@@ -4,10 +4,12 @@ import logging
 
 import playhouse.apsw_ext as pw
 import requests
+from apsw import SQLITE_LIMIT_VARIABLE_NUMBER
 from discord.ext import tasks
 
 import models
 
+QUERY_VAR_LIMIT = models.db.connection().limit(SQLITE_LIMIT_VARIABLE_NUMBER)
 EDDB_FACTIONS_URL = 'https://eddb.io/archive/v6/factions.csv'
 EDDB_SYSTEMS_URL = 'https://eddb.io/archive/v6/systems_populated.json'
 EDDB_STATIONS_URL = 'https://eddb.io/archive/v6/stations.json'
@@ -55,17 +57,25 @@ async def sync_database():
     fetch_update(LIVE_LISTINGS_URL, process_listings)
 
 
+def batch_upsert(model, num_columns, rows):
+    batch_size = QUERY_VAR_LIMIT // num_columns
+    for batch in pw.chunked(rows, batch_size):
+        model.replace_many(batch).execute()
+
+
 @models.db.atomic()
 def process_factions(response):
-    for row in csv.DictReader(codecs.iterdecode(response.iter_lines(), 'utf-8')):
+    rows = csv.DictReader(codecs.iterdecode(response.iter_lines(), 'utf-8'))
+    for row in rows:
         del row['government_id']
         del row['allegiance_id']
-        models.MinorFaction.create(**row)
+    batch_upsert(models.MinorFaction, len(rows.fieldnames), rows)
 
 
 @models.db.atomic()
 def process_systems(response):
-    for row in response.json():
+    rows = response.json()
+    for row in rows:
         del row['government_id']
         del row['allegiance_id']
         del row['security_id']
@@ -77,12 +87,13 @@ def process_systems(response):
         del row['minor_factions_updated_at']
         row['position'] = pw.fn.MakePointZ(row.pop('x'), row.pop('y'), row.pop('z'))
         row['states'] = ', '.join(state['name'] for state in row['states'])
-        models.System.create(**row)
+    batch_upsert(models.System, len(rows[0])+2, rows)  # position takes 3 variables instead of 1
 
 
 @models.db.atomic()
 def process_stations(response):
-    for row in response.json():
+    rows = response.json()
+    for row in rows:
         del row['government_id']
         del row['allegiance_id']
         del row['type_id']
@@ -90,20 +101,24 @@ def process_stations(response):
         del row['settlement_security_id']
         del row['selling_ships']
         del row['selling_modules']
+        del row['import_commodities']
+        del row['export_commodities']
+        del row['prohibited_commodities']
         row['states'] = ', '.join(state['name'] for state in row['states'])
         row['economies'] = ', '.join(row['economies'])
-        models.Station.create(**row)
+    batch_upsert(models.Station, len(rows[0]), rows)
 
 
 @models.db.atomic()
 def process_commodities(response):
-    for row in response.json():
+    rows = response.json()
+    for row in rows:
         del row['category_id']
         row['category'] = row['category']['name']
-        models.Commodity.create(**row)
+    batch_upsert(models.Commodity, len(rows[0]), rows)
 
 
 @models.db.atomic()
 def process_listings(response):
-    for row in csv.DictReader(codecs.iterdecode(response.iter_lines(), 'utf-8')):
-        models.Listing.create(**row)
+    rows = csv.DictReader(codecs.iterdecode(response.iter_lines(), 'utf-8'))
+    batch_upsert(models.Listing, len(rows.fieldnames), rows)
