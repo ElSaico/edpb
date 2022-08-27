@@ -1,3 +1,4 @@
+import codecs
 import csv
 import logging
 
@@ -56,7 +57,7 @@ async def sync_database():
 
 @models.db.atomic()
 def process_factions(response):
-    for row in csv.DictReader(response):
+    for row in csv.DictReader(codecs.iterdecode(response.iter_lines(), 'utf-8')):
         del row['government_id']
         del row['allegiance_id']
         models.MinorFaction.create(**row)
@@ -104,5 +105,5 @@ def process_commodities(response):
 
 @models.db.atomic()
 def process_listings(response):
-    for row in csv.DictReader(response):
+    for row in csv.DictReader(codecs.iterdecode(response.iter_lines(), 'utf-8')):
         models.Listing.create(**row)
