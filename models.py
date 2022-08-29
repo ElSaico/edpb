@@ -139,5 +139,18 @@ class Listing(pw.Model):
         database = db
 
 
+class PriceTracking(pw.Model):
+    created_at = pw.DateTimeField()
+    user_id = pw.IntegerField()
+    commodity = pw.ForeignKeyField(Commodity, backref='trackings')
+    price = pw.IntegerField()
+    base_system = pw.ForeignKeyField(System, backref='trackings')
+    system_range = pw.IntegerField()
+    track_buy = pw.BooleanField()
+
+    class Meta:
+        database = db
+
+
 def build_schema():
-    db.create_tables([DatabaseUpdate, MinorFaction, System, Station, Commodity, Listing])
+    db.create_tables([DatabaseUpdate, MinorFaction, System, Station, Commodity, Listing, PriceTracking])

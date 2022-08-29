@@ -121,4 +121,9 @@ def process_commodities(response):
 @models.db.atomic()
 def process_listings(response):
     rows = csv.DictReader(codecs.iterdecode(response.iter_lines(), 'utf-8'))
+    for row in rows:
+        if row['supply_bracket'] is None:
+            row['supply_bracket'] = models.CommodityBracket.TEMPORARY
+        if row['demand_bracket'] is None:
+            row['demand_bracket'] = models.CommodityBracket.TEMPORARY
     batch_upsert(models.Listing, len(rows.fieldnames), rows)
